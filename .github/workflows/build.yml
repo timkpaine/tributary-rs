@@ -47,7 +47,11 @@ jobs:
         make tests
         zip -0 ccov.zip `find . \( -name "$PROJECT_NAME_UNDERSCORE*.gc*" \) -print`;
         grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
-
+      env:
+          PROJECT_NAME_UNDERSCORE: tributary_rs
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
+          RUSTDOCFLAGS: -Cpanic=abort
 
     - name: Upload test results
       uses: EnricoMi/publish-unit-test-result-action@v1
