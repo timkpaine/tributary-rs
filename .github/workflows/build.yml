@@ -1,0 +1,63 @@
+name: Build Status
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # run on sunday nights
+    - cron:  '0 0 * * 0'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        event-name: [push]
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        components: clippy
+        override: true
+
+    - uses: actions-rs/cargo@v1
+      with:
+        command: check
+
+    - name: Install dependencies
+      run: |
+        rustup component add rustfmt
+        rustup component add clippy
+        cargo install cargo2junit
+        cargo install grcov
+
+    - name: Lint
+      run: |
+        make lint
+
+    - name: Test
+      run: |
+        make tests
+        zip -0 ccov.zip `find . \( -name "$PROJECT_NAME_UNDERSCORE*.gc*" \) -print`;
+        grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
+
+
+    - name: Upload test results
+      uses: EnricoMi/publish-unit-test-result-action@v1
+      with:
+        check_name: Test Results
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        files: results.xml
+
+    - name: Upload to CodeCov
+      uses: codecov/codecov-action@v1
+      with:
+        files: ./lcov.info
+        fail_ci_if_error: true
