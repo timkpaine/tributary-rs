@@ -1,3 +1,10 @@
+dev:
+	rustup component add rustfmt
+	rustup component add clippy
+	cargo install cargo2junit
+	cargo install grcov
+	rustup component add llvm-tools-preview
+
 build:
 	cargo build --release --all-features
 
@@ -9,4 +16,4 @@ fix:  # fix code
 	cargo fmt --all
 
 tests:  # test
-	cargo test $CARGO_OPTIONS -- -Z unstable-options --format json | cargo2junit > results.xml;
+	cargo test -- -Z unstable-options --format json | cargo2junit > results.xml

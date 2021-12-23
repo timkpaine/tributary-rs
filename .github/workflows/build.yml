@@ -33,10 +33,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        rustup component add rustfmt
-        rustup component add clippy
-        cargo install cargo2junit
-        cargo install grcov
+        make dev
 
     - name: Lint
       run: |
@@ -44,11 +41,10 @@ jobs:
 
     - name: Test
       run: |
-        make tests
-        zip -0 ccov.zip `find . \( -name "$PROJECT_NAME_UNDERSCORE*.gc*" \) -print`;
+        cargo test $CARGO_OPTIONS -- -Z unstable-options --format json | cargo2junit > results.xml;
+        zip -0 ccov.zip `find . \( -name "$tributary*.gc*" \) -print`;
         grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
       env:
-          PROJECT_NAME_UNDERSCORE: tributary_rs
           CARGO_INCREMENTAL: 0
           RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
           RUSTDOCFLAGS: -Cpanic=abort

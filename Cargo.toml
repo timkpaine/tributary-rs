@@ -1,5 +1,5 @@
 [package]
-name = "tributary-rs"
+name = "tributary"
 version = "0.1.0"
 authors = ["Tim Paine <t.paine154@gmail.com>"]
 edition = "2018"
