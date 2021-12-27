@@ -41,7 +41,7 @@ jobs:
 
     - name: Test
       run: |
-        cargo test $CARGO_OPTIONS -- -Z unstable-options --format json | cargo2junit > results.xml;
+        cargo test -- -Z unstable-options --format json | cargo2junit > results.xml;
         zip -0 ccov.zip `find . \( -name "$tributary*.gc*" \) -print`;
         grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
       env:
