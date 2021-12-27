@@ -41,13 +41,12 @@ jobs:
 
     - name: Test
       run: |
-        cargo test -- -Z unstable-options --format json | cargo2junit > results.xml;
+        cargo test -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort -- -Z unstable-options --format json | cargo2junit > results.xml;
         zip -0 ccov.zip `find . \( -name "$tributary*.gc*" \) -print`;
         grcov ccov.zip -s . -t lcov --llvm --ignore-not-existing --ignore "/*" --ignore "tests/*" -o lcov.info;
       env:
           CARGO_INCREMENTAL: 0
-          RUSTFLAGS: -Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort
-          RUSTDOCFLAGS: -Cpanic=abort
+      if: ${{ matrix.os == 'ubuntu-latest' }}
 
     - name: Upload test results
       uses: EnricoMi/publish-unit-test-result-action@v1
@@ -55,9 +54,11 @@ jobs:
         check_name: Test Results
         github_token: ${{ secrets.GITHUB_TOKEN }}
         files: results.xml
+      if: ${{ matrix.os == 'ubuntu-latest' }}
 
     - name: Upload to CodeCov
       uses: codecov/codecov-action@v1
       with:
         files: ./lcov.info
         fail_ci_if_error: true
+      if: ${{ matrix.os == 'ubuntu-latest' }}
