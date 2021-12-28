@@ -1,10 +1,10 @@
-pub struct Node {
+pub struct Node<T> {
     // func: Fn() -> ()
-    pub func: fn() -> &'static str,
+    pub func: fn() -> T,
 }
 
-impl Node {
-    pub fn call(&self) -> &'static str {
+impl<T> Node<T> {
+    pub fn call(&self) -> T {
         (self.func)()
     }
 }
