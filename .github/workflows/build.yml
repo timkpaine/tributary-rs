@@ -46,7 +46,7 @@ jobs:
 
     - name: Test
       run: |
-        make tests-ci
+        make tests-ci-gha
       if: ${{ matrix.os == 'ubuntu-latest' }}
 
     - name: Upload test results
