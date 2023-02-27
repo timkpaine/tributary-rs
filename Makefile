@@ -19,23 +19,19 @@ fix:  ## Fix code with rustfmt
 	cargo fmt --all
 
 tests:  ## Run the tests
-	cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
+	cargo test -- --show-output 
+	# cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
 
 tests-ci-run: $(eval SHELL:=/bin/bash)
 	{ \
 		export CARGO_INCREMENTAL=0;\
 		export RUSTDOCFLAGS="-Cpanic=abort";\
 		export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort";\
-		cargo build --all-features;\
-		cargo test;\
+		cargo test -- -Z unstable-options --format json | cargo2junit > results.xml;\
 	}
-
 
 tests-ci-gha: tests-ci-run
 	grcov . --llvm -s . -t lcov --branch --ignore-not-existing -o ./coverage.info;\
-
-tests-ci-jenkins: tests-ci-run
-	grcov . --llvm -s . -t cobertura --branch --ignore-not-existing -o ./coverage.xml;\
 
 # aliases
 test: tests
