@@ -29,7 +29,7 @@ pub struct Callable<'a, T, U> (
 );
 
 impl<'a, T, U> Node<'a, T, U> {
-    pub fn new(callable: Callable<'a, T, U>) -> Node<T, U> {
+    pub fn new(callable: Callable<'a, T, U>) -> Node<'a, T, U> {
         Node {
             inst: RefCell::new(
                 NodeInst {
@@ -42,15 +42,7 @@ impl<'a, T, U> Node<'a, T, U> {
     }
 
     pub fn from(callable: impl Fn(T) -> U + 'a) -> Node<'a, T, U> {
-        return Node::new(Callable(Box::new(callable)));
-    }
-
-    pub fn from_input(callable: impl Fn(()) -> U + 'a) -> Node<'a, (), U> {
-        return Node::new(Callable(Box::new(callable)));
-    }
-
-    pub fn from_output(callable: impl Fn(T) -> () + 'a) -> Node<'a, T, ()> {
-        return Node::new(Callable(Box::new(callable)));
+        Node::new(Callable(Box::new(callable)))
     }
 }
 
