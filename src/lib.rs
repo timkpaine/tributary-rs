@@ -13,7 +13,7 @@ use std::ops;
 pub type Optional<T> = Option<T>;
 
 pub struct NodeInst<T, U> {
-    callable: Box<dyn Fn(T) -> U>,
+    callable: Callable<T, U>,
 }
 
 pub struct Node<T, U> {
@@ -24,8 +24,22 @@ pub struct Node<T, U> {
 //    nodes: Vec<Node>,
 //}
 
+// enum Callable<A, B, X, Y> {
+//     VU(Box<dyn Fn() -> A>),
+//     UV(Box<dyn Fn(A) -> ()>),
+//     U(Box<dyn Fn(A) -> X>),
+//     NU(Box<dyn Fn(A, B) -> X>),
+//     UN(Box<dyn Fn(A) -> (X, Y)>),
+//     N(Box<dyn Fn(A, B) -> (X, Y)>),
+// }
+
+pub struct Callable<T, U> (
+    Box<dyn Fn(T) -> U>,
+);
+
+
 impl<T, U> Node<T, U> {
-    pub fn new(callable: Box<dyn Fn(T) -> U>) -> Node<T, U> {
+    pub fn new(callable: Callable<T, U>) -> Node<T, U> {
         Node {
             inst: RefCell::new(
                 NodeInst {
@@ -37,17 +51,27 @@ impl<T, U> Node<T, U> {
         }
     }
 
-    pub fn from(callable: impl Fn(T) -> U + 'static) -> Node<T,U> {
-        return Node::new(Box::new(callable));
+    pub fn from(callable: impl Fn(T) -> U + 'static) -> Node<T, U> {
+        return Node::new(Callable(Box::new(callable)));
+    }
+
+    pub fn from_input(callable: impl Fn(()) -> U + 'static) -> Node<(), U> {
+        return Node::new(Callable(Box::new(callable)));
+    }
+
+    pub fn from_output(callable: impl Fn(T) -> () + 'static) -> Node<T, ()> {
+        return Node::new(Callable(Box::new(callable)));
     }
 }
 
 pub fn Print<T, U: std::fmt::Display>(text: &'static str, n: Node<T, U>) -> Node<U, U> {
     Node::new(
-        Box::new(move |val: U| -> U {
-            println!("{}{}", text, val);
-            val
-        })
+        Callable(
+            Box::new(move |val: U| -> U {
+                println!("{}{}", text, val);
+                val
+            })
+        )
     )
 }
 
@@ -61,8 +85,8 @@ impl<T, U: std::ops::Add<Output = U>> ops::Add<Node<T, U>> for Node<T, U> {
 
 
 pub fn run<T, U>(
-    to_run: Node<T, U>,
-    real_time: bool,
-    start_time: Optional<DateTime<Utc>>,
-    end_time: Optional<DateTime<Utc>>
+    _to_run: Node<T, U>,
+    _real_time: bool,
+    _start_time: Optional<DateTime<Utc>>,
+    _end_time: Optional<DateTime<Utc>>
 ) { }

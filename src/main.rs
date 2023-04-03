@@ -3,8 +3,8 @@ use tributary::*;
 
 
 fn main() {
-  let n1 = Node::from(|| 5);
-  let n2 = Node::from(|_| 6);
+  let n1 = Node::from_input(|()| 5);
+  let n2 = Node::from_input(|()| 6);
 
   let n3 = n1 + n2;
 
