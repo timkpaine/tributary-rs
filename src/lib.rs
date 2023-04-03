@@ -17,25 +17,22 @@ pub struct NodeInst<'a, T, U> {
 }
 
 pub struct Node<'a, T, U> {
-    inst: RefCell<NodeInst<'a, T, U>>
+    inst: RefCell<NodeInst<'a, T, U>>,
 }
 
 //pub struct Graph {
 //    nodes: Vec<Node>,
 //}
 
-pub struct Callable<'a, T, U> (
-    pub Box<dyn Fn(T) -> U + 'a>,
-);
+pub struct Callable<'a, T, U>(pub Box<dyn Fn(T) -> U + 'a>);
+
+pub trait IsNode {}
+impl<'a, T, U> IsNode for Node<'a, T, U> {}
 
 impl<'a, T, U> Node<'a, T, U> {
     pub fn new(callable: Callable<'a, T, U>) -> Node<'a, T, U> {
         Node {
-            inst: RefCell::new(
-                NodeInst {
-                    callable,
-                },
-            ),
+            inst: RefCell::new(NodeInst { callable }),
             // upstream: Vec::new(),
             // downstream: Vec::new(),
         }
@@ -46,29 +43,28 @@ impl<'a, T, U> Node<'a, T, U> {
     }
 }
 
-pub fn Print<'a, T, U: std::fmt::Display>(text: &'static str, n: Node<'a, T, U>) -> Node<'a, U, U> {
-    Node::new(
-        Callable(
-            Box::new(move |val: U| -> U {
-                println!("{}{}", text, val);
-                val
-            })
-        )
-    )
+pub fn Print<'a, T, U: std::fmt::Display>(
+    text: &'static str,
+    n: &Node<'a, T, U>,
+) -> Node<'a, U, U> {
+    Node::new(Callable(Box::new(move |val: U| -> U {
+        println!("{}{}", text, val);
+        val
+    })))
 }
 
-impl<'a, T, U: std::ops::Add<Output = U>> ops::Add<Node<'a, T, U>> for Node<'a, T, U> {
+impl<'a, T, U: std::ops::Add<Output = U>> ops::Add<&Node<'a, T, U>> for &Node<'a, T, U> {
     type Output = Node<'a, (U, U), U>;
 
-    fn add(self, _rhs: Node<'a, T, U>) -> Node<'a, (U, U), U> {
+    fn add(self, _rhs: &Node<'a, T, U>) -> Node<'a, (U, U), U> {
         return Node::from(|vals: (U, U)| vals.0 + vals.1);
     }
 }
-
 
 pub fn run<T, U>(
     _to_run: Node<T, U>,
     _real_time: bool,
     _start_time: Optional<DateTime<Utc>>,
-    _end_time: Optional<DateTime<Utc>>
-) { }
+    _end_time: Optional<DateTime<Utc>>,
+) {
+}
