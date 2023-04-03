@@ -12,34 +12,24 @@ use std::ops;
 
 pub type Optional<T> = Option<T>;
 
-pub struct NodeInst<T, U> {
-    callable: Callable<T, U>,
+pub struct NodeInst<'a, T, U> {
+    callable: Callable<'a, T, U>,
 }
 
-pub struct Node<T, U> {
-    inst: RefCell<NodeInst<T, U>>
+pub struct Node<'a, T, U> {
+    inst: RefCell<NodeInst<'a, T, U>>
 }
 
 //pub struct Graph {
 //    nodes: Vec<Node>,
 //}
 
-// enum Callable<A, B, X, Y> {
-//     VU(Box<dyn Fn() -> A>),
-//     UV(Box<dyn Fn(A) -> ()>),
-//     U(Box<dyn Fn(A) -> X>),
-//     NU(Box<dyn Fn(A, B) -> X>),
-//     UN(Box<dyn Fn(A) -> (X, Y)>),
-//     N(Box<dyn Fn(A, B) -> (X, Y)>),
-// }
-
-pub struct Callable<T, U> (
-    Box<dyn Fn(T) -> U>,
+pub struct Callable<'a, T, U> (
+    pub Box<dyn Fn(T) -> U + 'a>,
 );
 
-
-impl<T, U> Node<T, U> {
-    pub fn new(callable: Callable<T, U>) -> Node<T, U> {
+impl<'a, T, U> Node<'a, T, U> {
+    pub fn new(callable: Callable<'a, T, U>) -> Node<T, U> {
         Node {
             inst: RefCell::new(
                 NodeInst {
@@ -51,20 +41,20 @@ impl<T, U> Node<T, U> {
         }
     }
 
-    pub fn from(callable: impl Fn(T) -> U + 'static) -> Node<T, U> {
+    pub fn from(callable: impl Fn(T) -> U + 'a) -> Node<'a, T, U> {
         return Node::new(Callable(Box::new(callable)));
     }
 
-    pub fn from_input(callable: impl Fn(()) -> U + 'static) -> Node<(), U> {
+    pub fn from_input(callable: impl Fn(()) -> U + 'a) -> Node<'a, (), U> {
         return Node::new(Callable(Box::new(callable)));
     }
 
-    pub fn from_output(callable: impl Fn(T) -> () + 'static) -> Node<T, ()> {
+    pub fn from_output(callable: impl Fn(T) -> () + 'a) -> Node<'a, T, ()> {
         return Node::new(Callable(Box::new(callable)));
     }
 }
 
-pub fn Print<T, U: std::fmt::Display>(text: &'static str, n: Node<T, U>) -> Node<U, U> {
+pub fn Print<'a, T, U: std::fmt::Display>(text: &'static str, n: Node<'a, T, U>) -> Node<'a, U, U> {
     Node::new(
         Callable(
             Box::new(move |val: U| -> U {
@@ -75,10 +65,10 @@ pub fn Print<T, U: std::fmt::Display>(text: &'static str, n: Node<T, U>) -> Node
     )
 }
 
-impl<T, U: std::ops::Add<Output = U>> ops::Add<Node<T, U>> for Node<T, U> {
-    type Output = Node<(U, U), U>;
+impl<'a, T, U: std::ops::Add<Output = U>> ops::Add<Node<'a, T, U>> for Node<'a, T, U> {
+    type Output = Node<'a, (U, U), U>;
 
-    fn add(self, _rhs: Node<T, U>) -> Node<(U, U), U> {
+    fn add(self, _rhs: Node<'a, T, U>) -> Node<'a, (U, U), U> {
         return Node::from(|vals: (U, U)| vals.0 + vals.1);
     }
 }
