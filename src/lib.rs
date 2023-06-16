@@ -5,7 +5,7 @@
 // pub use engine::*;
 // pub use nodes::*;
 
-use chrono::prelude::*;
+// use chrono::prelude::*;
 use std::boxed::Box;
 use std::cell::RefCell;
 use std::ops;
@@ -41,16 +41,44 @@ impl<'a, T, U> Node<'a, T, U> {
     pub fn from(callable: impl Fn(T) -> U + 'a) -> Node<'a, T, U> {
         Node::new(Callable(Box::new(callable)))
     }
+
+    pub fn round(&self) -> Node<'a, f64, i64> {
+        Node::new(Callable(Box::new(move |val: f64| -> i64 {
+            val.round() as i64
+        })))
+    }
 }
 
-pub fn Print<'a, T, U: std::fmt::Display>(
-    text: &'static str,
-    n: &Node<'a, T, U>,
-) -> Node<'a, U, U> {
-    Node::new(Callable(Box::new(move |val: U| -> U {
-        println!("{}{}", text, val);
-        val
-    })))
+impl<'a, T, U> Node<'a, T, U>
+where
+    U: std::fmt::Display,
+{
+    pub fn print(&self, msg: &'static str) -> Node<'a, U, U> {
+        Node::new(Callable(Box::new(move |val: U| -> U {
+            println!("{}{}", msg, val);
+            val
+        })))
+    }
+}
+
+impl<'a, T, U, X> std::ops::Add<Node<'a, X, U>> for Node<'a, T, U>
+where
+    U: std::ops::Add<Output = U>,
+{
+    type Output = Node<'a, (U, U), U>;
+    fn add(self, _rhs: Node<'a, X, U>) -> Node<'a, (U, U), U> {
+        return Node::from(|vals: (U, U)| vals.0 + vals.1);
+    }
+}
+
+impl<'a, T, U> Node<'a, T, U>
+where
+    U: std::ops::Add<Output = U>,
+{
+    #[allow(clippy::should_implement_trait)]
+    pub fn add<X>(self, _rhs: &Node<'a, X, U>) -> Node<'a, (U, U), U> {
+        return Node::from(|vals: (U, U)| vals.0 + vals.1);
+    }
 }
 
 impl<'a, T, U: std::ops::Add<Output = U>> ops::Add<&Node<'a, T, U>> for &Node<'a, T, U> {
@@ -63,8 +91,8 @@ impl<'a, T, U: std::ops::Add<Output = U>> ops::Add<&Node<'a, T, U>> for &Node<'a
 
 pub fn run<T, U>(
     _to_run: Node<T, U>,
-    _real_time: bool,
-    _start_time: Optional<DateTime<Utc>>,
-    _end_time: Optional<DateTime<Utc>>,
+    // _real_time: bool,
+    // _start_time: Optional<DateTime<Utc>>,
+    // _end_time: Optional<DateTime<Utc>>,
 ) {
 }

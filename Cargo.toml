@@ -12,6 +12,7 @@ description = "Data streams"
 
 [dependencies]
 chrono = { version = "0.4.23", features = ["serde"] }
+rand = "0.8.5"
 serde = { version = "1.0.152", features = ["derive"] }
 uuid = { version = "1.3.0", features = ["v4", "serde"] }
 
